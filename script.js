@@ -11,43 +11,48 @@ function generatePDF() {
     // Initialize jsPDF
     const doc = new jspdf.jsPDF();
 
-    // Generate QR code and ensure it's fully rendered before adding to PDF
+    // Adjusted the QR code generation to synchronize with the PDF creation
     const qrCanvas = document.createElement('canvas');
-    const qr = new QRCode(qrCanvas, {
+    // Assuming QRCode is synchronous or this constructor callback is instant
+    new QRCode(qrCanvas, {
         text: calendarUrl,
-        width: 64,
-        height: 64,
-        colorDark : "#000000",
-        colorLight : "#ffffff",
-        correctLevel : QRCode.CorrectLevel.H,
-        useSVG: false
+        width: 128,
+        height: 128,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H
     });
 
-    // Using a timeout to allow QR code to render
+    // Extract the QR code as an image after a slight delay to ensure rendering
     setTimeout(() => {
         const qrImgData = qrCanvas.toDataURL("image/jpeg");
 
-        // Calculate positions for 6 cards on a page (3x2 layout)
-        const cardWidth = 60; // Adjust based on your needs
-        const cardHeight = 100; // Adjust based on your needs
-        const startX = 10;
-        const startY = 20; // Increased startY to give more space at the top
-        const spaceX = 10;
-        const spaceY = 20; // Increased spaceY for more vertical spacing
+        // Define card dimensions and layout parameters
+        const cardsPerRow = 3;
+        const cardWidth = 60; // Adjust card width as necessary
+        const cardHeight = 100; // Adjust card height as necessary
+        const startX = 15; // Starting X position
+        const startY = 25; // Starting Y position, adjusted for better spacing
+        const xSpacing = 10; // Spacing between cards horizontally
+        const ySpacing = 20; // Spacing between cards vertically, adjusted for better text spacing
 
+        // Generate cards in a 3x2 layout
         for (let i = 0; i < 6; i++) {
-            const x = startX + (i % 3) * (cardWidth + spaceX);
-            const y = startY + Math.floor(i / 3) * (cardHeight + spaceY);
+            const row = Math.floor(i / cardsPerRow);
+            const col = i % cardsPerRow;
 
-            // Add title and name with adjusted spacing
-            doc.text("Parent-Teacher Conference Sign-Up", x, y, { maxWidth: cardWidth });
-            doc.text(teacherName, x, y + 10, { maxWidth: cardWidth }); // Adjust as necessary
+            const x = startX + (col * (cardWidth + xSpacing));
+            const y = startY + (row * (cardHeight + ySpacing));
 
-            // Add QR code image, adjust position if needed
-            doc.addImage(qrImgData, 'JPEG', x, y + 20, 50, 50); // Adjust QR code size and position as needed
+            // Print the text above the QR code
+            doc.text("Parent-Teacher Conference Sign-Up", x, y - 10, { maxWidth: cardWidth });
+            doc.text(teacherName, x, y, { maxWidth: cardWidth });
+
+            // Add the QR code image
+            doc.addImage(qrImgData, 'JPEG', x, y + 10, 40, 40); // Adjusted QR code size and position
         }
 
-        // Save the PDF
+        // Save the generated PDF
         doc.save('QR_Code_Cards.pdf');
-    }, 500); // Adjust timeout as necessary to ensure QR code renders
+    }, 1000); // Increased timeout to ensure the QR code is rendered
 }
