@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QR Code Cards Generator</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1/qrcode.min.js"></script>
 </head>
 <body>
     <div class="container">
-        <h1>Parent-Teacher Conference Sign-Up</h1>
+        <h1>Parent-Teacher Conference Sign-Up Card Generator</h1>
         <input type="text" id="calendarUrl" placeholder="Paste Google Calendar Link Here">
         <input type="text" id="teacherName" placeholder="Enter Your Name">
         <button onclick="generatePDF()">Generate</button>
