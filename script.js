@@ -2,7 +2,6 @@ function generatePDF() {
     const calendarUrl = document.getElementById('calendarUrl').value;
     const teacherName = document.getElementById('teacherName').value;
 
-    // Check if the inputs are not empty
     if (!calendarUrl || !teacherName) {
         alert("Please fill out both fields.");
         return;
@@ -11,48 +10,43 @@ function generatePDF() {
     // Initialize jsPDF
     const doc = new jspdf.jsPDF();
 
-    // Adjusted the QR code generation to synchronize with the PDF creation
-    const qrCanvas = document.createElement('canvas');
-    // Assuming QRCode is synchronous or this constructor callback is instant
-    new QRCode(qrCanvas, {
-        text: calendarUrl,
-        width: 128,
-        height: 128,
-        colorDark: "#000000",
-        colorLight: "#ffffff",
-        correctLevel: QRCode.CorrectLevel.H
-    });
+    // Set a nicer font
+    doc.setFont("helvetica", "bold");
 
-    // Extract the QR code as an image after a slight delay to ensure rendering
-    setTimeout(() => {
-        const qrImgData = qrCanvas.toDataURL("image/jpeg");
+    // Generate QR code using 'qrcode-generator'
+    let qr = qrcode(4, 'L'); // 'L' denotes low error correction
+    qr.addData(calendarUrl);
+    qr.make();
 
-        // Define card dimensions and layout parameters
-        const cardsPerRow = 3;
-        const cardWidth = 60; // Adjust card width as necessary
-        const cardHeight = 100; // Adjust card height as necessary
-        const startX = 15; // Starting X position
-        const startY = 25; // Starting Y position, adjusted for better spacing
-        const xSpacing = 10; // Spacing between cards horizontally
-        const ySpacing = 20; // Spacing between cards vertically, adjusted for better text spacing
+    // Create an image from the QR code
+    let qrImgData = qr.createDataURL(4); // Increased scale for better resolution
 
-        // Generate cards in a 3x2 layout
-        for (let i = 0; i < 6; i++) {
-            const row = Math.floor(i / cardsPerRow);
-            const col = i % cardsPerRow;
+    // Positioning and dimensions for the PDF
+    const startX = 10, startY = 10, spaceX = 5, spaceY = 5; // Adjusted spacing for more cards
+    const cardWidth = 50, cardHeight = 90; // Smaller dimensions for each card to fit 9 per page
 
-            const x = startX + (col * (cardWidth + xSpacing));
-            const y = startY + (row * (cardHeight + ySpacing));
+    for (let i = 0; i < 9; i++) {
+        const col = i % 3;
+        const row = Math.floor(i / 3);
 
-            // Print the text above the QR code
-            doc.text("Parent-Teacher Conference Sign-Up", x, y - 10, { maxWidth: cardWidth });
-            doc.text(teacherName, x, y, { maxWidth: cardWidth });
+        const x = startX + col * (cardWidth + spaceX);
+        const y = startY + row * (cardHeight + spaceY);
 
-            // Add the QR code image
-            doc.addImage(qrImgData, 'JPEG', x, y + 10, 40, 40); // Adjusted QR code size and position
-        }
+        // Add a simple border around each card
+        doc.setDrawColor(0); // Set color to black for the border
+        doc.rect(x, y, cardWidth, cardHeight, 'S'); // Draw rectangle for the border
 
-        // Save the generated PDF
-        doc.save('QR_Code_Cards.pdf');
-    }, 1000); // Increased timeout to ensure the QR code is rendered
+        // Add the title with larger font size
+        doc.setFontSize(11); // Adjusted for smaller space
+        doc.text("Parent-Teacher Conference Sign-Up", x + 2, y + 10, { maxWidth: cardWidth - 4 });
+
+        // Add the teacher's name with a smaller font size
+        doc.setFontSize(9);
+        doc.text(teacherName, x + 2, y + 20, { maxWidth: cardWidth - 4 });
+
+        // Add the QR code image
+        doc.addImage(qrImgData, 'PNG', x + 5, y + 25, 35, 35); // Adjusted QR code position and size
+    }
+
+    doc.save('QR_Code_Cards.pdf');
 }
